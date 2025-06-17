@@ -89,12 +89,59 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     
     return (bb_imgs, bb_accs)
 
+
+def get_kk_img(sum_mv: tuple[int, int]) -> pg.Surface:
+    """
+    概要: 移動量の合計値タプルに対応する向きの画像Surfaceを返す
+    """
+
+    kk_img = pg.image.load("fig/3.png")
+
+    #下方向. rotozoom単体では作れない.
+    kk_img_down = pg.transform.rotozoom(kk_img, 90, 0.9)
+    kk_img_down = pg.transform.flip(kk_img_down, True, False)
+
+    mv_rotation = {
+        (0, 0):pg.transform.rotozoom(kk_img, 0, 0.9), #停止
+        (-5, 0):pg.transform.rotozoom(kk_img, 0, 0.9), #左
+        (-5, 5):pg.transform.rotozoom(kk_img, 45, 0.9), #左下
+        (0, 5):kk_img_down, #下
+        (5, 5):pg.transform.rotozoom(kk_img_down, 45, 1), #右下
+        (5, 0):pg.transform.rotozoom(kk_img_down, 90, 1), #右
+        (5, -5):pg.transform.rotozoom(kk_img_down, 135, 1), #右上
+        (0, -5):pg.transform.rotozoom(kk_img_down, 180, 1), #上
+        (-5, -5):pg.transform.rotozoom(kk_img, -45, 0.9), #左上
+    }
+
+    return mv_rotation[sum_mv]
+
+
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    """
+    引数: 爆弾Rect, こうかとんRect, 爆弾の速度タプル(vx, vy)
+    概要: orgから見て, dstがどこにあるかを計算し, 方向ベクトルをタプルで返す
+    """
+    diff_x = dst.centerx - org.centerx
+    diff_y = dst.centery - org.centery
+    distance: float = (diff_x ** 2 + diff_y ** 2) ** 0.5
+
+    vec_norm: float = (current_xy[0] ** 2 + current_xy[1] ** 2) ** 0.5
+    
+    new_x: float = vec_norm * diff_x / distance
+    new_y: float = vec_norm * diff_y / distance
+
+    if distance < 300.0:
+        new_x = current_xy[0]
+        new_y = current_xy[1]
+
+    return (new_x, new_y)
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")
     
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    kk_img = get_kk_img((0, 0))
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
 
@@ -130,6 +177,12 @@ def main():
                 sum_mv[0] += DELTA[k][0]
                 sum_mv[1] += DELTA[k][1]
         
+        #移動方向に応じて向きを変える
+        kk_img = get_kk_img(tuple(sum_mv))
+        
+        #爆弾の追従
+        vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
+
         #爆弾の拡大/加速
         bb_x_before = bb_rct.centerx #座標を保存する
         bb_y_before = bb_rct.centery
@@ -162,6 +215,7 @@ def main():
             #こうかとんと爆弾を再設定する. (しないと無限にゲームオーバーになる)
             kk_rct.center = 300, 200
             bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT) #初期位置はランダム
+            tmr = 0
 
         #画面に表示
         screen.blit(kk_img, kk_rct)
