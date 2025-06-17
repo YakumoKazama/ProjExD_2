@@ -88,6 +88,10 @@ def main():
         screen.blit(bb_img, bb_rct)
         pg.display.update()
 
+        #衝突判定
+        if pg.Rect.colliderect(kk_rct, bb_rct):
+            return #ゲーム終了
+
         tmr += 1
         clock.tick(50)
 
