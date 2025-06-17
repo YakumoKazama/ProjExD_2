@@ -124,18 +124,19 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]
     """
     diff_x = dst.centerx - org.centerx
     diff_y = dst.centery - org.centery
-    distance: float = (diff_x ** 2 + diff_y ** 2) ** 0.5
+    distance: float = (diff_x ** 2 + diff_y ** 2) ** 0.5 #差ベクトルの長さを取得
 
-    vec_norm: float = (current_xy[0] ** 2 + current_xy[1] ** 2) ** 0.5
+    vec_norm: float = (current_xy[0] ** 2 + current_xy[1] ** 2) ** 0.5 #爆弾の速度ベクトルの長さを取得
     
-    new_x: float = vec_norm * diff_x / distance
-    new_y: float = vec_norm * diff_y / distance
+    new_x: float = vec_norm * diff_x / distance #方向ベクトルのx成分
+    new_y: float = vec_norm * diff_y / distance #方向ベクトルのy成分
 
     if distance < 300.0:
         new_x = current_xy[0]
         new_y = current_xy[1]
 
     return (new_x, new_y)
+
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
