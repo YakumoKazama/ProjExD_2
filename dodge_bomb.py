@@ -1,16 +1,17 @@
 import os
 import sys
-import pygame as pg
 import time
 import random
+
+import pygame as pg
 
 
 WIDTH, HEIGHT = 1100, 650 #画面サイズ
 DELTA = { #押下キーと移動量を対応させる
-    pg.K_UP:(0,-5), 
-    pg.K_DOWN:(0,5), 
-    pg.K_LEFT:(-5,0), 
-    pg.K_RIGHT:(5,0), 
+    pg.K_UP:   (0, -5), 
+    pg.K_DOWN: (0, 5), 
+    pg.K_LEFT: (-5, 0), 
+    pg.K_RIGHT:(5, 0), 
 }
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,7 +41,7 @@ def gameover(screen: pg.Surface) -> None:
     #ブラックアウト
     black_img = pg.Surface((WIDTH, HEIGHT))
     black_rct = black_img.get_rect()
-    pg.draw.rect(black_img, (0,0,0), black_rct)
+    pg.draw.rect(black_img, (0, 0, 0), black_rct)
     black_img.set_alpha(150)
 
     #「Game Over」の文字列
@@ -73,18 +74,18 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     """
     概要: サイズの異なる爆弾Surfaceを要素としたリストと加速度リストを返す
     """
-    bb_accs = [a for a in range(1,11)]
+    bb_accs = [a for a in range(1, 11)]
     bb_imgs = []
 
-    for r in range(1,11):
-        bb_img = pg.Surface((20*r, 20*r))
+    for r in range(1, 11):
+        bb_img = pg.Surface((20 * r, 20 * r))
         pg.draw.circle(
             bb_img, 
-            (255,0,0),
-            (10*r, 10*r), 
-            10*r
+            (255, 0, 0),
+            (10 * r, 10 * r), 
+            10 * r
         )
-        bb_img.set_colorkey((0,0,0))
+        bb_img.set_colorkey((0, 0, 0))
         bb_imgs.append(bb_img)
     
     return (bb_imgs, bb_accs)
@@ -102,14 +103,14 @@ def get_kk_img(sum_mv: tuple[int, int]) -> pg.Surface:
     kk_img_down = pg.transform.flip(kk_img_down, True, False)
 
     mv_rotation = {
-        (0, 0):pg.transform.rotozoom(kk_img, 0, 0.9), #停止
-        (-5, 0):pg.transform.rotozoom(kk_img, 0, 0.9), #左
-        (-5, 5):pg.transform.rotozoom(kk_img, 45, 0.9), #左下
-        (0, 5):kk_img_down, #下
-        (5, 5):pg.transform.rotozoom(kk_img_down, 45, 1), #右下
-        (5, 0):pg.transform.rotozoom(kk_img_down, 90, 1), #右
-        (5, -5):pg.transform.rotozoom(kk_img_down, 135, 1), #右上
-        (0, -5):pg.transform.rotozoom(kk_img_down, 180, 1), #上
+        (0, 0)  :pg.transform.rotozoom(kk_img, 0, 0.9), #停止
+        (-5, 0) :pg.transform.rotozoom(kk_img, 0, 0.9), #左
+        (-5, 5) :pg.transform.rotozoom(kk_img, 45, 0.9), #左下
+        (0, 5)  :kk_img_down, #下
+        (5, 5)  :pg.transform.rotozoom(kk_img_down, 45, 1), #右下
+        (5, 0)  :pg.transform.rotozoom(kk_img_down, 90, 1), #右
+        (5, -5) :pg.transform.rotozoom(kk_img_down, 135, 1), #右上
+        (0, -5) :pg.transform.rotozoom(kk_img_down, 180, 1), #上
         (-5, -5):pg.transform.rotozoom(kk_img, -45, 0.9), #左上
     }
 
@@ -148,14 +149,14 @@ def main():
     #爆弾Surfaceを作成
     bb_radius = 10 #大きさ(半径)
     vx, vy = 5, 5 #速度
-    bb_img = pg.Surface((2*bb_radius,2*bb_radius))
+    bb_img = pg.Surface((2 * bb_radius, 2 * bb_radius))
     pg.draw.circle(
         bb_img, 
-        (255,0,0), 
+        (255, 0, 0), 
         (bb_radius, bb_radius), 
         bb_radius
     )
-    bb_img.set_colorkey((0,0,0))
+    bb_img.set_colorkey((0, 0, 0))
     bb_rct = bb_img.get_rect()
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT) #初期位置はランダム
 
@@ -170,7 +171,7 @@ def main():
 
         #こうかとんの移動量を押下キーに応じて決める
         key_lst = pg.key.get_pressed()
-        sum_mv = [0,0]
+        sum_mv = [0, 0]
 
         for k in DELTA:
             if key_lst[k]:
@@ -215,6 +216,7 @@ def main():
             #こうかとんと爆弾を再設定する. (しないと無限にゲームオーバーになる)
             kk_rct.center = 300, 200
             bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT) #初期位置はランダム
+            vx, vy = 5, 5
             tmr = 0
 
         #画面に表示
