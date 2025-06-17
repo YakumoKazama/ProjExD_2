@@ -1,6 +1,7 @@
 import os
 import sys
 import pygame as pg
+import time
 import random
 
 
@@ -26,6 +27,46 @@ def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
     if (rct.top < 0) | (rct.bottom > HEIGHT): flag_y = False #縦
 
     return (flag_x, flag_y)
+
+
+def gameover(screen: pg.Surface) -> None:
+    """
+    引数: 画面のSurface (screen)\n
+    概要: ゲームオーバー時に, 半透明の黒い画面上に「Game Over」と表示し, 泣いているこうかとん画像を貼り付ける関数
+    """
+    mid_x = WIDTH // 2
+    mid_y = HEIGHT // 2
+
+    #ブラックアウト
+    black_img = pg.Surface((WIDTH, HEIGHT))
+    black_rct = black_img.get_rect()
+    pg.draw.rect(black_img, (0,0,0), black_rct)
+    black_img.set_alpha(150)
+
+    #「Game Over」の文字列
+    fnt = pg.font.Font(None, 50)
+    txt = fnt.render("Game Over", True, (255, 255, 255))
+    txt_rct = txt.get_rect()
+    txt_rct.centerx = mid_x #画面中央に表示する
+    txt_rct.centery = mid_y
+
+    #泣いているこうかとんの画像
+    kk_img_l = pg.image.load("fig/8.png") #左(left)
+    kk_img_r = pg.image.load("fig/8.png") #右(right)
+    kk_rct_l = kk_img_l.get_rect()
+    kk_rct_r = kk_img_r.get_rect()
+    kk_rct_l.centerx = mid_x - 150
+    kk_rct_l.centery = mid_y
+    kk_rct_r.centerx = mid_x + 150
+    kk_rct_r.centery = mid_y
+
+    #画面に表示(5秒間)
+    screen.blit(black_img, black_rct)
+    screen.blit(txt, txt_rct)
+    screen.blit(kk_img_l, kk_rct_l)
+    screen.blit(kk_img_r, kk_rct_r)
+    pg.display.update()
+    time.sleep(5)
 
 
 def main():
@@ -83,14 +124,17 @@ def main():
         if not bb_bound[0]: vx = -1 * vx
         if not bb_bound[1]: vy = -1 * vy
 
+        #衝突判定
+        if pg.Rect.colliderect(kk_rct, bb_rct):
+            gameover(screen)
+            #こうかとんと爆弾を再設定する. (しないと無限にゲームオーバーになる)
+            kk_rct.center = 300, 200
+            bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT) #初期位置はランダム
+
         #画面に表示
         screen.blit(kk_img, kk_rct)
         screen.blit(bb_img, bb_rct)
         pg.display.update()
-
-        #衝突判定
-        if pg.Rect.colliderect(kk_rct, bb_rct):
-            return #ゲーム終了
 
         tmr += 1
         clock.tick(50)
