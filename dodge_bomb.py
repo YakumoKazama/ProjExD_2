@@ -69,6 +69,26 @@ def gameover(screen: pg.Surface) -> None:
     time.sleep(5)
 
 
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    概要: サイズの異なる爆弾Surfaceを要素としたリストと加速度リストを返す
+    """
+    bb_accs = [a for a in range(1,11)]
+    bb_imgs = []
+
+    for r in range(1,11):
+        bb_img = pg.Surface((20*r, 20*r))
+        pg.draw.circle(
+            bb_img, 
+            (255,0,0),
+            (10*r, 10*r), 
+            10*r
+        )
+        bb_img.set_colorkey((0,0,0))
+        bb_imgs.append(bb_img)
+    
+    return (bb_imgs, bb_accs)
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -109,9 +129,21 @@ def main():
             if key_lst[k]:
                 sum_mv[0] += DELTA[k][0]
                 sum_mv[1] += DELTA[k][1]
+        
+        #爆弾の拡大/加速
+        bb_x_before = bb_rct.centerx #座標を保存する
+        bb_y_before = bb_rct.centery
+        bb_imgs, bb_accs = init_bb_imgs()
+        acc_phase = min(tmr//500, 9) #加速/拡大の段階. 時間とともに進む. 0~9.
+        avx = vx * bb_accs[acc_phase]
+        avy = vy * bb_accs[acc_phase]
+        bb_img = bb_imgs[acc_phase]
+        bb_rct = bb_img.get_rect()
+        bb_rct.center = bb_x_before, bb_y_before
 
+        #移動
         kk_rct.move_ip(sum_mv)
-        bb_rct.move_ip(vx, vy)
+        bb_rct.move_ip((avx, avy))
 
         #画面端判定
         kk_bound = check_bound(kk_rct) #こうかとん. 画面外に出るとき, 移動前の位置に戻る
